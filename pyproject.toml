@@ -5,10 +5,12 @@ description = "Phishing URL Analyzer: heuristics, WHOIS, SSL, DNS, VirusTotal & 
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+authors = [{ name = "Youssef Hussein" }]
 keywords = ["phishing", "security", "url-analysis", "whois", "ssl", "virustotal", "flask"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-q"
 
 [tool.ruff]
