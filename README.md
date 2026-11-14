@@ -126,6 +126,7 @@ Exit codes: `0` safe · `1` suspicious · `3` malicious · `2` invalid input.
 | `HOST` / `PORT` | `127.0.0.1` / `5000` | Dev server binding |
 | `RATE_LIMIT_PER_MINUTE` | `0` | Analyses allowed per IP per minute (`0` disables) |
 | `TRUSTED_PROXIES` | `0` | Reverse proxies in front of the app, so the real client IP is used |
+| `CLIENT_IP_HEADER` | — | Header holding the real client IP from a trusted edge (e.g. `CF-Connecting-IP`) |
 
 ## 🗂️ Project structure
 

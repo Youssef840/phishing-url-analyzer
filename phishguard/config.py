@@ -21,6 +21,9 @@ class Config:
     RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "0"))
     # Number of reverse proxies in front of the app (e.g. 1 on Render) so the real client IP is used.
     TRUSTED_PROXIES = int(os.getenv("TRUSTED_PROXIES", "0"))
+    # Header set by a trusted edge proxy with the real client IP (e.g. CF-Connecting-IP behind Cloudflare).
+    # Only set this when that proxy always overwrites the header, otherwise clients could spoof it.
+    CLIENT_IP_HEADER = os.getenv("CLIENT_IP_HEADER", "").strip() or None
 
 
 class TestConfig(Config):
@@ -30,3 +33,4 @@ class TestConfig(Config):
     CACHE_TTL = 0
     RATE_LIMIT_PER_MINUTE = 0
     TRUSTED_PROXIES = 0
+    CLIENT_IP_HEADER = None

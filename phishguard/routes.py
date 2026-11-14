@@ -32,9 +32,18 @@ def _settings() -> AnalyzerSettings:
 RATE_LIMIT_MSG = "عدد طلبات كبير. حاول مرة أخرى بعد دقيقة."
 
 
+def _client_ip() -> str:
+    header = current_app.config.get("CLIENT_IP_HEADER")
+    if header:
+        value = request.headers.get(header, "").split(",")[0].strip()
+        if value:
+            return value
+    return request.remote_addr or "unknown"
+
+
 def _rate_limited() -> bool:
     limiter = current_app.extensions["phishguard_limiter"]
-    return not limiter.allow(request.remote_addr or "unknown")
+    return not limiter.allow(_client_ip())
 
 
 @bp.route("/", methods=["GET", "POST"])

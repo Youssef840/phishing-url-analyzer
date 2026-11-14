@@ -37,6 +37,24 @@ def test_form_shows_message_when_limited(offline):
     assert "حاول مرة أخرى" in r.get_data(as_text=True)
 
 
+class HeaderConfig(LimitedConfig):
+    CLIENT_IP_HEADER = "CF-Connecting-IP"
+
+
+def test_limit_uses_client_ip_header(offline):
+    client = create_app(HeaderConfig).test_client()
+
+    def hit(ip, peer):
+        return client.post("/api/analyze", json={"url": "https://www.google.com"},
+                           headers={"CF-Connecting-IP": ip}, environ_base={"REMOTE_ADDR": peer}).status_code
+
+    # Same visitor through different edge IPs is still one client.
+    assert hit("9.9.9.9", "10.0.0.1") == 200
+    assert hit("9.9.9.9", "10.0.0.2") == 200
+    assert hit("9.9.9.9", "10.0.0.3") == 429
+    assert hit("8.8.8.8", "10.0.0.3") == 200
+
+
 def test_health_is_never_limited(offline):
     client = create_app(LimitedConfig).test_client()
     assert all(client.get("/health").status_code == 200 for _ in range(10))
