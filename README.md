@@ -42,6 +42,14 @@ Every finding adds risk points. The total is capped at 100:
 | 30 – 59 | 🟡 **Suspicious** |
 | 60 – 100 | 🔴 **Malicious** |
 
+## ☁️ Deploy online
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Youssef840/phishing-url-analyzer)
+
+One click deploys the Docker image on Render's free plan using [`render.yaml`](render.yaml), with a per-IP rate limit
+(15 analyses/minute) and the private-IP guard enabled. Free instances sleep when idle, so the first request can take
+about a minute.
+
 ## 🚀 Quick start
 
 ```bash
@@ -113,6 +121,8 @@ Exit codes: `0` safe · `1` suspicious · `3` malicious · `2` invalid input.
 | `TASK_TIMEOUT` | `20` | Time budget for network checks (seconds) |
 | `CACHE_TTL` | `300` | Report cache lifetime (seconds, `0` disables) |
 | `HOST` / `PORT` | `127.0.0.1` / `5000` | Dev server binding |
+| `RATE_LIMIT_PER_MINUTE` | `0` | Analyses allowed per IP per minute (`0` disables) |
+| `TRUSTED_PROXIES` | `0` | Reverse proxies in front of the app, so the real client IP is used |
 
 ## 🗂️ Project structure
 

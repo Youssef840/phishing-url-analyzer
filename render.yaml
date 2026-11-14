@@ -1,0 +1,22 @@
+# One-click deploy on Render (free plan) using the Dockerfile.
+services:
+  - type: web
+    name: phishguard
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "15"
+      - key: TRUSTED_PROXIES
+        value: "1"
+      - key: ALLOW_PRIVATE_TARGETS
+        value: "false"
+      # Optional: add your own keys in the Render dashboard to enable reputation checks.
+      - key: VT_API_KEY
+        sync: false
+      - key: GSB_API_KEY
+        sync: false

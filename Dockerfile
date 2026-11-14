@@ -13,6 +13,7 @@ COPY run.py .
 RUN useradd --create-home appuser
 USER appuser
 
+ENV PORT=8000
 EXPOSE 8000
-HEALTHCHECK CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" || exit 1
-CMD ["gunicorn", "--workers", "2", "--threads", "4", "--timeout", "60", "--bind", "0.0.0.0:8000", "phishguard:create_app()"]
+HEALTHCHECK CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/health')" || exit 1
+CMD gunicorn --workers 2 --threads 4 --timeout 60 --bind "0.0.0.0:${PORT}" "phishguard:create_app()"

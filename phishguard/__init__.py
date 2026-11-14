@@ -16,6 +16,16 @@ def create_app(config_object: str | type | None = None) -> Flask:
     app.json.ensure_ascii = False
     app.json.sort_keys = False
 
+    proxies = app.config.get("TRUSTED_PROXIES", 0)
+    if proxies:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=proxies, x_proto=proxies, x_host=proxies)
+
+    from .ratelimit import RateLimiter
+
+    app.extensions["phishguard_limiter"] = RateLimiter(app.config.get("RATE_LIMIT_PER_MINUTE", 0))
+
     from .routes import bp
 
     app.register_blueprint(bp)
