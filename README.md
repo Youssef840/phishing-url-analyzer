@@ -4,6 +4,9 @@
 
 **Analyze any URL in seconds and get an instant risk verdict: `Safe` · `Suspicious` · `Malicious`**
 
+### 🌐 [Try it live → phishguard-x33e.onrender.com](https://phishguard-x33e.onrender.com)
+<sub>Free hosting: the first visit after a quiet period can take about a minute to wake up.</sub>
+
 [![CI](https://github.com/Youssef840/phishing-url-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/Youssef840/phishing-url-analyzer/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/flask-3.x-black?logo=flask)
