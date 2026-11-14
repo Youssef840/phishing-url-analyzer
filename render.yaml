@@ -11,6 +11,9 @@ services:
         value: "8000"
       - key: RATE_LIMIT_PER_MINUTE
         value: "15"
+      # One worker so the in-memory rate limit is shared by every request.
+      - key: WEB_CONCURRENCY
+        value: "1"
       - key: TRUSTED_PROXIES
         value: "1"
       - key: ALLOW_PRIVATE_TARGETS
