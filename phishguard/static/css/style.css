@@ -1,0 +1,52 @@
+:root {
+  --pg-bg: #f4f6fb;
+  --pg-hero-from: #1e3a8a;
+  --pg-hero-to: #312e81;
+}
+
+body { font-family: "Tajawal", system-ui, sans-serif; background: var(--pg-bg); }
+
+.hero {
+  background: linear-gradient(135deg, var(--pg-hero-from), var(--pg-hero-to));
+  color: #fff;
+  padding: 5rem 0 5rem;
+}
+.search-card { margin-top: -3rem; }
+
+.card { border: 0; box-shadow: 0 2px 14px rgba(30, 41, 59, .07); border-radius: 1rem; }
+.card-header:first-child { border-radius: 1rem 1rem 0 0; }
+.verdict-card { border-top: 6px solid var(--verdict, var(--bs-secondary)) !important; }
+.verdict-safe { --verdict: var(--bs-success); }
+.verdict-suspicious { --verdict: var(--bs-warning); }
+.verdict-malicious { --verdict: var(--bs-danger); }
+
+.ltr { direction: ltr; text-align: left; unicode-bidi: plaintext; word-break: break-all; }
+
+.score-ring {
+  --val: 0; --ring: var(--bs-success);
+  width: 136px; height: 136px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 2.2rem; font-weight: 800;
+  background: conic-gradient(var(--ring) calc(var(--val) * 1%), #e9ecef 0);
+  transition: background .6s ease;
+}
+.score-ring > span { width: 108px; height: 108px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+
+.scale {
+  position: relative; height: 10px; border-radius: 5px;
+  background: linear-gradient(to left, var(--bs-success) 0 30%, var(--bs-warning) 30% 60%, var(--bs-danger) 60% 100%);
+}
+.scale-marker {
+  position: absolute; top: -5px; width: 4px; height: 20px; border-radius: 2px;
+  background: #111827; right: 0; transition: right .6s ease;
+}
+
+.kv dt { color: #6c757d; font-weight: 500; }
+.kv dd { margin-bottom: .5rem; }
+
+.sev-high   { border-inline-start: 4px solid var(--bs-danger) !important; }
+.sev-medium { border-inline-start: 4px solid var(--bs-warning) !important; }
+.sev-low    { border-inline-start: 4px solid var(--bs-info) !important; }
+.sev-info   { border-inline-start: 4px solid var(--bs-success) !important; }
+
+.raw-json { max-height: 420px; overflow: auto; }
+.example-btn { font-size: .75rem; }

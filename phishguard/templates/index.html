@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="hero">
+  <div class="container text-center">
+    <h1 class="fw-bolder display-6"><i class="bi bi-shield-lock"></i> محلل روابط التصيد</h1>
+    <p class="mb-0 opacity-75">فحص فوري لعمر النطاق، شهادة SSL، مؤشرات الخطورة وسمعة الرابط</p>
+  </div>
+</header>
+
+<main class="container pb-4">
+  <!-- Search -->
+  <section class="card search-card mb-4">
+    <div class="card-body p-4">
+      <form method="post" action="{{ url_for('main.index') }}" id="analyzeForm">
+        <label for="url" class="form-label fw-bold">أدخل الرابط المراد فحصه</label>
+        <div class="input-group input-group-lg">
+          <input type="text" class="form-control ltr" id="url" name="url" required maxlength="2048"
+                 placeholder="https://example.com/login" value="{{ url }}" autocomplete="off" spellcheck="false">
+          <button class="btn btn-primary px-4" type="submit" id="submitBtn">
+            <span class="spinner-border spinner-border-sm d-none" id="spinner" aria-hidden="true"></span>
+            <span id="btnText"><i class="bi bi-search"></i> تحليل</span>
+          </button>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-3 small">
+          <span class="text-muted">أمثلة:</span>
+          {% for ex in examples %}
+            <button type="button" class="btn btn-sm btn-outline-secondary ltr example-btn" data-url="{{ ex }}">{{ ex|truncate(38, True) }}</button>
+          {% endfor %}
+        </div>
+        <div class="form-text mt-2">
+          مصادر السمعة:
+          <span class="badge text-bg-{{ 'success' if vt_enabled else 'secondary' }}">VirusTotal {{ 'مفعّل' if vt_enabled else 'غير مفعّل' }}</span>
+          <span class="badge text-bg-{{ 'success' if gsb_enabled else 'secondary' }}">Safe Browsing {{ 'مفعّل' if gsb_enabled else 'غير مفعّل' }}</span>
+          — لا تفتح الروابط المشبوهة في متصفحك، المحلل يفحصها دون عرض محتواها.
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {% if error %}
+    <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-octagon"></i> {{ error }}</div>
+  {% endif %}
+
+  {% if report %}
+  {% set v = report.verdict_info %}
+
+  <!-- Verdict -->
+  <section class="card mb-4 verdict-card verdict-{{ report.verdict }}">
+    <div class="card-body p-4">
+      <div class="row align-items-center g-4">
+        <div class="col-md-auto text-center">
+          <div class="score-ring mx-auto" data-score="{{ report.score }}" data-color="{{ v.color }}">
+            <span class="text-{{ v.color }}">{{ report.score }}</span>
+          </div>
+          <small class="text-muted">درجة الخطورة / 100</small>
+        </div>
+        <div class="col-md">
+          <h2 class="fw-bold text-{{ v.color }} mb-2">
+            <i class="bi {{ v.icon }}"></i> {{ v.label }}
+            <span class="badge text-bg-{{ v.color }} fs-6 align-middle">{{ v.en }}</span>
+          </h2>
+          <div class="ltr mb-2"><code>{{ report.url }}</code></div>
+          <div class="text-muted small">
+            النطاق: <strong class="ltr d-inline">{{ report.domain }}</strong> ·
+            مؤشرات الخطورة: <strong>{{ report.risk_count }}</strong> ·
+            مدة التحليل: {{ report.duration_sec }} ث
+            {% if report.cached %}<span class="badge text-bg-light">من الذاكرة المؤقتة</span>{% endif %}
+          </div>
+          {% for n in report.notes %}<div class="small text-info mt-1"><i class="bi bi-info-circle"></i> {{ n }}</div>{% endfor %}
+          <div class="scale mt-3"><div class="scale-marker" data-score="{{ report.score }}"></div></div>
+          <div class="d-flex justify-content-between small text-muted mt-1">
+            <span>آمن 0–29</span><span>مشبوه 30–59</span><span>ضار 60–100</span>
+          </div>
+          <div class="mt-3 d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-dark" id="downloadJson"><i class="bi bi-download"></i> تحميل التقرير JSON</button>
+            <button type="button" class="btn btn-sm btn-outline-dark" id="copyUrl"><i class="bi bi-clipboard"></i> نسخ الرابط</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Indicators -->
+  <section class="card mb-4">
+    <div class="card-header bg-body fw-bold py-3"><i class="bi bi-list-check"></i> تفاصيل المؤشرات</div>
+    <div class="list-group list-group-flush">
+      {% set badges = {'high':'danger','medium':'warning','low':'info','info':'success'} %}
+      {% for i in report.indicators %}
+        <div class="list-group-item sev-{{ i.severity }} py-3">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <div class="fw-bold">{{ i.title }}</div>
+              {% if i.detail %}<div class="small text-muted">{{ i.detail }}</div>{% endif %}
+            </div>
+            <div class="text-nowrap">
+              <span class="badge text-bg-light">{{ categories.get(i.category, i.category) }}</span>
+              <span class="badge text-bg-{{ badges[i.severity] }}">{{ i.severity_label }}</span>
+              {% if i.points %}<span class="badge text-bg-dark">+{{ i.points }}</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="list-group-item text-success">لم يتم العثور على أي مؤشرات.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="row g-4">
+    <!-- WHOIS -->
+    <div class="col-lg-6">
+      <section class="card h-100">
+        <div class="card-header bg-body fw-bold py-3"><i class="bi bi-calendar3"></i> WHOIS — عمر النطاق</div>
+        <div class="card-body">
+          {% set w = report.whois %}
+          {% if w.available %}
+          <dl class="row kv mb-0">
+            <dt class="col-5">النطاق</dt><dd class="col-7 ltr">{{ w.domain }}</dd>
+            <dt class="col-5">تاريخ التسجيل</dt><dd class="col-7 ltr">{{ (w.creation_date or '—')[:10] }}</dd>
+            <dt class="col-5">عمر النطاق</dt>
+            <dd class="col-7">{% if w.age_days is not none %}{{ w.age_days }} يوم{% if w.age_days >= 365 %} (~{{ (w.age_days / 365)|round(1) }} سنة){% endif %}{% else %}—{% endif %}</dd>
+            <dt class="col-5">تاريخ الانتهاء</dt><dd class="col-7 ltr">{{ (w.expiration_date or '—')[:10] }}</dd>
+            <dt class="col-5">آخر تحديث</dt><dd class="col-7 ltr">{{ (w.updated_date or '—')[:10] }}</dd>
+            <dt class="col-5">المسجِّل</dt><dd class="col-7 ltr">{{ w.registrar or '—' }}</dd>
+            <dt class="col-5">الجهة / الدولة</dt><dd class="col-7 ltr">{{ w.org or '—' }} / {{ w.country or '—' }}</dd>
+            <dt class="col-5">خوادم الأسماء</dt><dd class="col-7 ltr small">{{ w.name_servers|join(', ') if w.name_servers else '—' }}</dd>
+          </dl>
+          {% else %}
+            <p class="text-muted mb-0">{{ w.error or 'لا تتوفر بيانات.' }}</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <!-- SSL -->
+    <div class="col-lg-6">
+      <section class="card h-100">
+        <div class="card-header bg-body fw-bold py-3"><i class="bi bi-lock"></i> شهادة SSL/TLS</div>
+        <div class="card-body">
+          {% set s = report.ssl %}
+          <p>
+            {% if s.valid %}<span class="badge text-bg-success fs-6"><i class="bi bi-check-circle"></i> صالحة وموثوقة</span>
+            {% elif s.skipped %}<span class="badge text-bg-secondary fs-6"><i class="bi bi-slash-circle"></i> تم التخطي</span>
+            {% elif s.reachable %}<span class="badge text-bg-danger fs-6"><i class="bi bi-x-circle"></i> غير صالحة</span>
+            {% else %}<span class="badge text-bg-secondary fs-6"><i class="bi bi-slash-circle"></i> لا يوجد HTTPS</span>{% endif %}
+          </p>
+          {% if s.error %}<p class="small text-danger">{{ s.error }}</p>{% endif %}
+          {% if s.valid %}
+          <dl class="row kv mb-0">
+            <dt class="col-5">صادرة لـ</dt><dd class="col-7 ltr">{{ s.subject_cn or '—' }}</dd>
+            <dt class="col-5">الجهة المُصدِرة</dt><dd class="col-7 ltr">{{ s.issuer_org or '' }} {{ s.issuer_cn or '' }}</dd>
+            <dt class="col-5">صالحة من</dt><dd class="col-7 ltr">{{ s.not_before[:10] }}</dd>
+            <dt class="col-5">صالحة حتى</dt><dd class="col-7 ltr">{{ s.not_after[:10] }} ({{ s.days_remaining }} يوم)</dd>
+            <dt class="col-5">البروتوكول</dt><dd class="col-7 ltr">{{ s.tls_version }} · {{ s.cipher }}</dd>
+            <dt class="col-5">النطاقات (SAN)</dt><dd class="col-7 ltr small">{{ s.san|join(', ') }}</dd>
+          </dl>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <!-- Reputation -->
+    <div class="col-lg-6">
+      <section class="card h-100">
+        <div class="card-header bg-body fw-bold py-3"><i class="bi bi-globe2"></i> السمعة — APIs خارجية</div>
+        <div class="card-body">
+          {% set vt = report.reputation.virustotal %}
+          <h6 class="fw-bold">VirusTotal</h6>
+          {% if vt.status == 'ok' %}
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <span class="badge text-bg-danger">ضار: {{ vt.malicious }}</span>
+              <span class="badge text-bg-warning">مشبوه: {{ vt.suspicious }}</span>
+              <span class="badge text-bg-success">آمن: {{ vt.harmless }}</span>
+              <span class="badge text-bg-secondary">غير مكتشف: {{ vt.undetected }}</span>
+            </div>
+            {% if vt.flagged_by %}<div class="small text-muted ltr">{{ vt.flagged_by|join(', ') }}</div>{% endif %}
+            <a class="small" href="{{ vt.permalink }}" target="_blank" rel="noopener noreferrer">عرض التقرير في VirusTotal</a>
+          {% else %}
+            <p class="small text-muted">{{ vt.message or vt.error or '—' }}</p>
+          {% endif %}
+          <hr>
+          {% set g = report.reputation.safebrowsing %}
+          <h6 class="fw-bold">Google Safe Browsing</h6>
+          {% if g.status == 'ok' %}
+            {% if g.listed %}<span class="badge text-bg-danger">مدرج: {{ g.threats|join(', ') }}</span>
+            {% else %}<span class="badge text-bg-success">غير مدرج في القوائم السوداء</span>{% endif %}
+          {% else %}
+            <p class="small text-muted mb-0">{{ g.message or g.error or '—' }}</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <!-- DNS -->
+    <div class="col-lg-6">
+      <section class="card h-100">
+        <div class="card-header bg-body fw-bold py-3"><i class="bi bi-hdd-network"></i> DNS</div>
+        <div class="card-body">
+          {% if report.dns.resolves %}
+            <p class="mb-1">المضيف <code class="ltr">{{ report.host }}</code> يُحل إلى:</p>
+            <div class="ltr small">{{ report.dns.ips|join(', ') }}</div>
+          {% else %}
+            <p class="text-danger mb-0">{{ report.dns.error or 'النطاق لا يُحل.' }}</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <details class="mt-4">
+    <summary class="text-muted small">عرض التقرير الخام (JSON)</summary>
+    <pre class="ltr bg-dark text-light p-3 rounded small mt-2 raw-json">{{ report|tojson(indent=2) }}</pre>
+  </details>
+  <script type="application/json" id="reportData">{{ report|tojson }}</script>
+  {% endif %}
+</main>
+{% endblock %}

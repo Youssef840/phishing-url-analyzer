@@ -1,0 +1,7 @@
+Flask>=3.0,<4.0
+requests>=2.31,<3.0
+charset-normalizer>=3.0
+python-whois>=0.9.4
+tldextract>=5.1,<6.0
+python-dotenv>=1.0,<2.0
+gunicorn>=22.0; platform_system != "Windows"
