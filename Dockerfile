@@ -14,9 +14,9 @@ RUN useradd --create-home appuser
 USER appuser
 
 # WEB_CONCURRENCY = gunicorn worker processes (read by gunicorn itself). The rate limiter
-# keeps counters per worker, so use 1 worker when RATE_LIMIT_PER_MINUTE must be exact.
+# keeps counters per worker, so keep 1 worker for RATE_LIMIT_PER_MINUTE to be exact.
 ENV PORT=8000 \
-    WEB_CONCURRENCY=2
+    WEB_CONCURRENCY=1
 EXPOSE 8000
 HEALTHCHECK CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/health')" || exit 1
 CMD gunicorn --threads 8 --timeout 60 --bind "0.0.0.0:${PORT}" "phishguard:create_app()"
